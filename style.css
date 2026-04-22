@@ -365,6 +365,10 @@ h1 {
 
 /* Modal */
 .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
     border: none;
     background: rgba(0, 0, 0, 0.4);
     backdrop-filter: blur(4px);
