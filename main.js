@@ -5,12 +5,31 @@ const FERTILE_WINDOW_START_OFFSET = 5; // Days before ovulation
 const FERTILE_WINDOW_END_OFFSET = 1; // Days after ovulation
 
 // State
-let periods = JSON.parse(localStorage.getItem('periods')) || [];
+let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
+let periods = [];
 let currentDate = new Date();
 let selectedDateForLog = null;
+let authMode = 'login'; // 'login' or 'register'
 
 // DOM Elements
 const elements = {
+    userGreeting: document.getElementById('user-greeting'),
+    authBtn: document.getElementById('auth-btn'),
+    authModal: document.getElementById('auth-modal'),
+    closeAuthBtn: document.getElementById('close-auth-btn'),
+    tabLogin: document.getElementById('tab-login'),
+    tabRegister: document.getElementById('tab-register'),
+    authForm: document.getElementById('auth-form'),
+    nameGroup: document.getElementById('name-group'),
+    authName: document.getElementById('auth-name'),
+    authEmail: document.getElementById('auth-email'),
+    authPassword: document.getElementById('auth-password'),
+    authSubmitBtn: document.getElementById('auth-submit-btn'),
+    authError: document.getElementById('auth-error'),
+    authLoggedInView: document.getElementById('auth-logged-in-view'),
+    userInfoText: document.getElementById('user-info-text'),
+    logoutBtn: document.getElementById('logout-btn'),
+
     statusLabel: document.getElementById('status-label'),
     statusValue: document.getElementById('status-value'),
     cycleProgress: document.getElementById('cycle-progress'),
@@ -30,6 +49,112 @@ const elements = {
     periodStartInput: document.getElementById('period-start'),
     periodEndInput: document.getElementById('period-end'),
     deleteLogBtn: document.getElementById('delete-log-btn')
+};
+
+// --- Auth Logic ---
+const loadUserData = () => {
+    if (currentUser) {
+        periods = JSON.parse(localStorage.getItem(`periods_${currentUser.email}`)) || [];
+        elements.userGreeting.textContent = `${currentUser.name}님 환영합니다!`;
+    } else {
+        periods = [];
+        elements.userGreeting.textContent = '';
+    }
+};
+
+const saveUserData = () => {
+    if (currentUser) {
+        localStorage.setItem(`periods_${currentUser.email}`, JSON.stringify(periods));
+    }
+};
+
+const openAuthModal = () => {
+    if (currentUser) {
+        elements.authForm.classList.add('hidden');
+        elements.authLoggedInView.classList.remove('hidden');
+        elements.userInfoText.textContent = `${currentUser.name} (${currentUser.email})`;
+        elements.tabLogin.parentElement.style.display = 'none';
+        elements.authModal.querySelector('#auth-modal-title').textContent = '내 정보';
+    } else {
+        elements.authForm.classList.remove('hidden');
+        elements.authLoggedInView.classList.add('hidden');
+        elements.tabLogin.parentElement.style.display = 'flex';
+        elements.authModal.querySelector('#auth-modal-title').textContent = '로그인 / 회원가입';
+        setAuthMode('login');
+    }
+    elements.authModal.setAttribute('open', '');
+};
+
+const closeAuthModal = () => {
+    elements.authModal.removeAttribute('open');
+    elements.authError.textContent = '';
+    elements.authForm.reset();
+};
+
+const setAuthMode = (mode) => {
+    authMode = mode;
+    elements.authError.textContent = '';
+    if (mode === 'login') {
+        elements.tabLogin.classList.add('active');
+        elements.tabRegister.classList.remove('active');
+        elements.nameGroup.style.display = 'none';
+        elements.authSubmitBtn.textContent = '로그인';
+    } else {
+        elements.tabRegister.classList.add('active');
+        elements.tabLogin.classList.remove('active');
+        elements.nameGroup.style.display = 'flex';
+        elements.authSubmitBtn.textContent = '가입하기';
+    }
+};
+
+const handleAuthSubmit = (e) => {
+    e.preventDefault();
+    const email = elements.authEmail.value.trim();
+    const password = elements.authPassword.value;
+    const name = elements.authName.value.trim();
+
+    let users = JSON.parse(localStorage.getItem('users')) || {};
+
+    if (authMode === 'register') {
+        if (users[email]) {
+            elements.authError.textContent = '이미 가입된 이메일입니다.';
+            return;
+        }
+        if (!name) {
+            elements.authError.textContent = '이름을 입력해주세요.';
+            return;
+        }
+        users[email] = { email, password, name };
+        localStorage.setItem('users', JSON.stringify(users));
+        
+        currentUser = { email, name };
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        
+        closeAuthModal();
+        loadUserData();
+        updateApp();
+    } else {
+        // Login
+        const user = users[email];
+        if (!user || user.password !== password) {
+            elements.authError.textContent = '이메일 또는 비밀번호가 올바르지 않습니다.';
+            return;
+        }
+        currentUser = { email: user.email, name: user.name };
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        
+        closeAuthModal();
+        loadUserData();
+        updateApp();
+    }
+};
+
+const handleLogout = () => {
+    currentUser = null;
+    localStorage.removeItem('currentUser');
+    closeAuthModal();
+    loadUserData();
+    updateApp();
 };
 
 // --- Utilities ---
@@ -260,6 +385,11 @@ const renderCalendar = () => {
 
 // --- Modal & Form Interactions ---
 const openModal = (dateStr = null, existingLog = null) => {
+    if (!currentUser) {
+        openAuthModal();
+        elements.authError.textContent = '기록을 저장하려면 로그인해주세요.';
+        return;
+    }
     selectedDateForLog = dateStr || formatDate(new Date());
     
     if (existingLog) {
@@ -281,6 +411,8 @@ const closeModal = () => {
 
 const saveLog = (e) => {
     e.preventDefault();
+    if (!currentUser) return;
+    
     const start = elements.periodStartInput.value;
     const end = elements.periodEndInput.value;
     
@@ -296,18 +428,20 @@ const saveLog = (e) => {
     periods = periods.filter(p => p.start !== start);
     
     periods.push({ start, end: end || start });
-    localStorage.setItem('periods', JSON.stringify(periods));
+    saveUserData();
     
     closeModal();
     updateApp();
 };
 
 const deleteLog = () => {
+    if (!currentUser) return;
+    
     if (selectedDateForLog) {
         const existingLog = isDateInPeriod(selectedDateForLog);
         if (existingLog) {
             periods = periods.filter(p => p.start !== existingLog.start);
-            localStorage.setItem('periods', JSON.stringify(periods));
+            saveUserData();
         }
     }
     closeModal();
@@ -322,6 +456,7 @@ const updateApp = () => {
 };
 
 const init = () => {
+    loadUserData();
     updateApp();
     
     // Event Listeners
@@ -344,6 +479,17 @@ const init = () => {
     elements.logModal.addEventListener('click', (e) => {
         if (e.target === elements.logModal) closeModal();
     });
+
+    // Auth Listeners
+    elements.authBtn.addEventListener('click', openAuthModal);
+    elements.closeAuthBtn.addEventListener('click', closeAuthModal);
+    elements.authModal.addEventListener('click', (e) => {
+        if (e.target === elements.authModal) closeAuthModal();
+    });
+    elements.tabLogin.addEventListener('click', () => setAuthMode('login'));
+    elements.tabRegister.addEventListener('click', () => setAuthMode('register'));
+    elements.authForm.addEventListener('submit', handleAuthSubmit);
+    elements.logoutBtn.addEventListener('click', handleLogout);
 };
 
 document.addEventListener('DOMContentLoaded', init);

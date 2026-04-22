@@ -14,9 +14,12 @@
     <div class="app-container">
         <header>
             <h1>나의 생리 주기</h1>
-            <button id="settings-btn" class="icon-btn" aria-label="설정">
-                <span class="material-symbols-rounded">settings</span>
-            </button>
+            <div class="header-actions">
+                <span id="user-greeting" class="user-greeting"></span>
+                <button id="auth-btn" class="icon-btn" aria-label="로그인">
+                    <span class="material-symbols-rounded">account_circle</span>
+                </button>
+            </div>
         </header>
 
         <main>
@@ -106,6 +109,42 @@
                     <button type="submit" class="primary-btn">저장</button>
                 </div>
             </form>
+        </div>
+    </dialog>
+
+    <!-- Auth Modal -->
+    <dialog id="auth-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="auth-modal-title">로그인 / 회원가입</h2>
+                <button id="close-auth-btn" class="icon-btn"><span class="material-symbols-rounded">close</span></button>
+            </div>
+            <div class="auth-tabs">
+                <button class="auth-tab active" id="tab-login">로그인</button>
+                <button class="auth-tab" id="tab-register">회원가입</button>
+            </div>
+            <form id="auth-form">
+                <div class="form-group" id="name-group" style="display: none;">
+                    <label for="auth-name">이름 (닉네임)</label>
+                    <input type="text" id="auth-name" placeholder="이름을 입력하세요">
+                </div>
+                <div class="form-group">
+                    <label for="auth-email">이메일</label>
+                    <input type="email" id="auth-email" required placeholder="example@email.com">
+                </div>
+                <div class="form-group">
+                    <label for="auth-password">비밀번호</label>
+                    <input type="password" id="auth-password" required placeholder="비밀번호를 입력하세요">
+                </div>
+                <div class="auth-error" id="auth-error"></div>
+                <div class="form-actions">
+                    <button type="submit" class="primary-btn" id="auth-submit-btn">로그인</button>
+                </div>
+            </form>
+            <div class="auth-logged-in-view hidden" id="auth-logged-in-view">
+                <p id="user-info-text"></p>
+                <button type="button" class="danger-btn" id="logout-btn" style="width: 100%; margin-top: 16px;">로그아웃</button>
+            </div>
         </div>
     </dialog>
 
