@@ -1,14 +1,114 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hello World</title>
-  <link href='/style.css' rel='stylesheet'>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>월경 주기 관리</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" rel="stylesheet" />
 </head>
 <body>
-  <h1>Hello, world!</h1>
-  <button onclick="console.log('hello');">Press me</button>
-  <script defer type="text/javascript" src="/main.js"></script>
+    <div class="app-container">
+        <header>
+            <h1>나의 생리 주기</h1>
+            <button id="settings-btn" class="icon-btn" aria-label="설정">
+                <span class="material-symbols-rounded">settings</span>
+            </button>
+        </header>
+
+        <main>
+            <section class="dashboard card primary-card">
+                <div class="status-indicator">
+                    <svg viewBox="0 0 100 100" class="progress-ring">
+                        <circle class="progress-ring-track" cx="50" cy="50" r="45"></circle>
+                        <circle class="progress-ring-fill" cx="50" cy="50" r="45" id="cycle-progress"></circle>
+                    </svg>
+                    <div class="status-text">
+                        <span class="status-label" id="status-label">다음 생리까지</span>
+                        <strong class="status-value" id="status-value">--일</strong>
+                    </div>
+                </div>
+                <button id="log-period-btn" class="primary-btn">생리 시작/종료 기록하기</button>
+            </section>
+
+            <section class="details-grid">
+                <div class="detail-card card">
+                    <div class="detail-icon"><span class="material-symbols-rounded">water_drop</span></div>
+                    <div class="detail-info">
+                        <span class="detail-title">다음 생리 예정일</span>
+                        <strong class="detail-value" id="next-period-date">--월 --일</strong>
+                    </div>
+                </div>
+                <div class="detail-card card">
+                    <div class="detail-icon"><span class="material-symbols-rounded">egg</span></div>
+                    <div class="detail-info">
+                        <span class="detail-title">배란 예정일</span>
+                        <strong class="detail-value" id="ovulation-date">--월 --일</strong>
+                    </div>
+                </div>
+                <div class="detail-card card">
+                    <div class="detail-icon"><span class="material-symbols-rounded">favorite</span></div>
+                    <div class="detail-info">
+                        <span class="detail-title">임신 가능 기간 (가임기)</span>
+                        <strong class="detail-value" id="fertility-window">--월 --일 ~ --월 --일</strong>
+                        <span class="detail-sub" id="pregnancy-chance">현재: 낮음</span>
+                    </div>
+                </div>
+                <div class="detail-card card">
+                    <div class="detail-icon"><span class="material-symbols-rounded">calendar_month</span></div>
+                    <div class="detail-info">
+                        <span class="detail-title">평균 주기</span>
+                        <strong class="detail-value" id="avg-cycle">28일</strong>
+                    </div>
+                </div>
+            </section>
+
+            <section class="calendar-section card">
+                <div class="calendar-header">
+                    <button id="prev-month" class="icon-btn"><span class="material-symbols-rounded">chevron_left</span></button>
+                    <h2 id="calendar-month-year">2026년 4월</h2>
+                    <button id="next-month" class="icon-btn"><span class="material-symbols-rounded">chevron_right</span></button>
+                </div>
+                <div class="calendar-grid" id="calendar-grid">
+                    <!-- Calendar days will be rendered here -->
+                </div>
+                <div class="calendar-legend">
+                    <div class="legend-item"><span class="dot period-dot"></span>생리일</div>
+                    <div class="legend-item"><span class="dot predicted-dot"></span>예정일</div>
+                    <div class="legend-item"><span class="dot fertile-dot"></span>가임기</div>
+                    <div class="legend-item"><span class="dot ovulation-dot"></span>배란일</div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal for logging period -->
+    <dialog id="log-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>생리 기록</h2>
+                <button id="close-modal-btn" class="icon-btn"><span class="material-symbols-rounded">close</span></button>
+            </div>
+            <form id="log-form">
+                <div class="form-group">
+                    <label for="period-start">시작일</label>
+                    <input type="date" id="period-start" required>
+                </div>
+                <div class="form-group">
+                    <label for="period-end">종료일 (선택)</label>
+                    <input type="date" id="period-end">
+                </div>
+                <div class="form-actions">
+                    <button type="button" id="delete-log-btn" class="danger-btn hidden">기록 삭제</button>
+                    <button type="submit" class="primary-btn">저장</button>
+                </div>
+            </form>
+        </div>
+    </dialog>
+
+    <script type="module" src="main.js"></script>
 </body>
 </html>
